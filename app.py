@@ -1,10 +1,11 @@
 import os
 from flask import Flask, render_template, request, redirect
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
 
-load_dotenv()
+load_dotenv(find_dotenv())
 
-print(os.environ.get('PASSWORD'))
+print(os.getenv('PASSWORD'))
+print(os.getenv('CUSTOM_USER'))
 
 app = Flask(__name__)
 
