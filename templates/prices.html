@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block Title %}
+Alternative???? PRICES
+{% endblock %}
+
+{% block content %}
+<script type="text/javascript">
+    var plot_data = {{d.data}}
+</script>
+    {{d.ticker}}
+<div id="plot"></div>
+{% endblock %}
+
+{% block additional_scripts %}
+<script src="js/prices.js"></script>
+{% endblock %}
