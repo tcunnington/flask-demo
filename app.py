@@ -1,18 +1,26 @@
 import datetime
+import itertools
 import os
 from flask import Flask, render_template, request, redirect
 import requests as req
 import json
 import pandas as pd
-import bokeh
+from bokeh.plotting import figure
+from bokeh.embed import components
+from bokeh.palettes import Category10 as palette
+
 from dotenv import load_dotenv, find_dotenv
 
 load_dotenv(find_dotenv())
 
-print(os.getenv('PASSWORD'))
-print(os.getenv('CUSTOM_USER'))
-
 app = Flask(__name__)
+
+FIELD_MAP = {
+    'close':    'Closing price',
+    'adj_close':'Adjusted closing price',
+    'open':     'Opening price',
+    'adj_open': 'Adjusted opening price',
+}
 
 @app.route('/')
 def index():
@@ -29,15 +37,15 @@ def prices():
     # call API
     # Or use requests module ot get json:
     quandl_api_key = os.getenv('QUANDL_API_KEY')
-    date_start = '2017-01-01' # TODO custom dates
-    date_end = '2017-12-31'
+    date_start = '2017-01-01'
+    date_end = '2018-01-01'
 
     if ticker == '':
         ticker = 'GOOG' # front end should give this
 
     url_params = {
         'ticker': ticker,
-        'date.gte': date_start,  # month_ago.strftime('%Y-%m-%d'),#'1999-11-19,1999-11-22',
+        'date.gte': date_start,
         'date.lte': date_end,
         'api_key': quandl_api_key
     }
@@ -45,15 +53,33 @@ def prices():
     r = req.get('https://www.quandl.com/api/v3/datatables/WIKI/PRICES', params=url_params)
 
     if r.status_code != 200:
-        print('API Error (' + str(r.status_code) + '): ' + r.reason) # throw error
+        print('API Error (' + str(r.status_code) + '): ' + r.reason) # TODO throw error
 
     price_data = r.json()['datatable']
 
+    # To DataFrame
     colnames = [c['name'] for c in price_data['columns']]
     df = pd.DataFrame(data=price_data['data'], columns=colnames)
-    data_obj = {col:df[col].tolist() for col in features}
+    df['date'] = pd.to_datetime(df["date"])
 
-    context = {'ticker': ticker, 'date': pd.to_datetime(df["date"]), 'data': json.dumps(data_obj)}
+    # PLOT
+    plot = figure(title="Quandl WIKI EOD Stock Prices - 2017",
+                  x_axis_label='Date', x_axis_type='datetime',
+                  y_axis_label='Price ($)')
+
+    colors = itertools.cycle(palette[10])
+    for feature, color in zip(features, colors):
+        plot.line(df['date'], df[feature], legend=ticker + ' - ' + FIELD_MAP[feature], color=color)
+
+    plot.legend.location = 'top_left'
+    script, div = components(plot)
+
+    # RENDER
+    context = {
+        'ticker': ticker,
+        'bk_script': script,
+        'bk_el': div,
+    }
 
     return render_template('prices.html', d=context)
 

@@ -1,17 +1,22 @@
 {% extends 'base.html' %}
 
-{% block Title %}
-Alternative???? PRICES
-{% endblock %}
-
 {% block content %}
-<script type="text/javascript">
-    var plot_data = {{d.data}}
-</script>
-    {{d.ticker}}
-<div id="plot"></div>
+{{d.bk_el|safe}}
 {% endblock %}
 
 {% block additional_scripts %}
-<script src="js/prices.js"></script>
+<link
+    href="https://cdn.pydata.org/bokeh/release/bokeh-0.12.16.min.css"
+    rel="stylesheet" type="text/css">
+<!--<link-->
+    <!--href="https://cdn.pydata.org/bokeh/release/bokeh-widgets-0.12.16.min.css"-->
+    <!--rel="stylesheet" type="text/css">-->
+
+<script src="https://cdn.pydata.org/bokeh/release/bokeh-0.12.16.min.js"></script>
+<!--<script src="https://cdn.pydata.org/bokeh/release/bokeh-widgets-0.12.16.min.js"></script>-->
+
+
+{{d.bk_script|safe}}
+
+<script src="{{ url_for('static', filename='js/prices.js') }}"></script>
 {% endblock %}
