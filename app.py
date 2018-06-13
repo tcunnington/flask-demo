@@ -32,13 +32,12 @@ def about():
 
 @app.route('/prices', methods=['POST'])
 def prices():
-    ticker = request.form.get('ticker')
-    features = request.form.getlist('features')
-    # call API
-    # Or use requests module ot get json:
     quandl_api_key = os.getenv('QUANDL_API_KEY')
     date_start = '2017-01-01'
     date_end = '2018-01-01'
+
+    ticker = request.form.get('ticker')
+    features = request.form.getlist('features')
 
     if ticker == '':
         ticker = 'GOOG' # front end should give this
@@ -53,7 +52,7 @@ def prices():
     r = req.get('https://www.quandl.com/api/v3/datatables/WIKI/PRICES', params=url_params)
 
     if r.status_code != 200:
-        print('API Error (' + str(r.status_code) + '): ' + r.reason) # TODO throw error
+        raise req.RequestException('API Error (' + str(r.status_code) + '): ' + r.reason, response=r)
 
     price_data = r.json()['datatable']
 
